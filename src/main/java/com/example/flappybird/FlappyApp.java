@@ -17,6 +17,7 @@ public class FlappyApp extends Application {
 
         stage.setTitle("Flappy Chess");
         stage.setScene(scene);
+        stage.setResizable(false);
         stage.show();
     }
 }
