@@ -17,6 +17,7 @@ public class BirbView {
         );
 
         imageView = new ImageView(birdImage);
+        imageView.setMouseTransparent(true);
     }
 
     public void render(Birb bird) {
