@@ -59,16 +59,8 @@ public class GameController {
             @Override
             public void handle(long now) {
                 bird.update();
-
-                if (bird.getY() < 0) {
-                    bird.setY(0);
-                }
-
+                bird.constrainToBounds(WINDOW_WIDTH, WINDOW_HEIGHT);
                 birdView.render(bird);
-
-                if (bird.getY() + bird.getHeight() >= WINDOW_HEIGHT) {
-                    bird.setY(WINDOW_HEIGHT - bird.getHeight());
-                }
             }
         };
 

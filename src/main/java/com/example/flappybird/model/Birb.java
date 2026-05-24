@@ -1,6 +1,13 @@
 package com.example.flappybird.model;
 
 public class Birb {
+    private static final double GRAVITY = 0.03;
+    private static final double JUMP_VELOCITY = -1.5;
+    private static final double DASH_VELOCITY = 1.25;
+    private static final double MAX_FALL_SPEED = 2.0;
+    private static final double HORIZONTAL_DAMPING = 0.92;
+    private static final double MIN_HORIZONTAL_SPEED = 0.02;
+
     private double x;
     private double y;
     private double velocityX;
@@ -19,24 +26,46 @@ public class Birb {
     }
 
     public void jump() {
-        velocityY = -0.4;
+        velocityY = JUMP_VELOCITY;
     }
 
     public void dashLeft() {
-        velocityX = -0.5;
+        velocityX = -DASH_VELOCITY;
     }
 
-    public void dashRight() { velocityX = 0.5; }
+    public void dashRight() {
+        velocityX = DASH_VELOCITY;
+    }
 
     public void update() {
-        velocityY += 0.0004; // gravity
-        if (velocityX < 0) {
-            velocityX += 0.0001;
-        } else if (velocityX > 0) {
-            velocityX -= 0.0001;
-        }
+        velocityY += GRAVITY;
+        velocityY = Math.min(velocityY, MAX_FALL_SPEED);
+
         x += velocityX;
         y += velocityY;
+
+        velocityX *= HORIZONTAL_DAMPING;
+        if (Math.abs(velocityX) < MIN_HORIZONTAL_SPEED) {
+            velocityX = 0;
+        }
+    }
+
+    public void constrainToBounds(double maxWidth, double maxHeight) {
+        if (x < 0) {
+            x = 0;
+            velocityX = Math.max(0, velocityX);
+        } else if (x + width > maxWidth) {
+            x = maxWidth - width;
+            velocityX = Math.min(0, velocityX);
+        }
+
+        if (y < 0) {
+            y = 0;
+            velocityY = Math.max(0, velocityY);
+        } else if (y + height > maxHeight) {
+            y = maxHeight - height;
+            velocityY = Math.min(0, velocityY);
+        }
     }
 
     public double getX() {
