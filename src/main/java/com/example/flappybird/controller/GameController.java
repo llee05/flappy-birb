@@ -27,10 +27,9 @@ public class GameController {
                 50
         );
 
-        chessController = new ChessController();
-
         birdView = new BirbView();
         chessView = new ChessBoardView();
+        chessController = new ChessController(chessView);
         gameView = new GameView(chessView, birdView);
 
         birdView.render(bird);

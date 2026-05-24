@@ -7,13 +7,13 @@ public class ChessController {
     private final ChessGameModel model;
     private final ChessBoardView view;
 
-    public ChessController() {
+    public ChessController(ChessBoardView view) {
         this.model = new ChessGameModel();
-        this.view = new ChessBoardView();
-        this.view.render(model.getBoard());
+        this.view = view;
+        this.view.update(model.getBoard());
     }
 
     public void refresh() {
-        view.render(model.getBoard());
+        view.update(model.getBoard());
     }
 }
