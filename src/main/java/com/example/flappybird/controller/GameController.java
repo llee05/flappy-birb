@@ -18,6 +18,7 @@ public class GameController {
     private final ChessBoardView chessView;
 
     private final ChessController chessController;
+    private boolean jumpPressed;
     private boolean leftPressed;
     private boolean rightPressed;
 
@@ -40,7 +41,10 @@ public class GameController {
     public void setupInput(Scene scene) {
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.SPACE) {
-                bird.jump();
+                if (!jumpPressed) {
+                    bird.jump();
+                }
+                jumpPressed = true;
             }
 
             if (event.getCode() == KeyCode.A) {
@@ -54,6 +58,10 @@ public class GameController {
         });
 
         scene.setOnKeyReleased(event -> {
+            if (event.getCode() == KeyCode.SPACE) {
+                jumpPressed = false;
+            }
+
             if (event.getCode() == KeyCode.A) {
                 leftPressed = false;
             }
