@@ -4,6 +4,7 @@ import com.example.flappybird.model.Birb;
 import com.example.flappybird.view.BirbView;
 import com.example.flappybird.view.ChessBoardView;
 import com.example.flappybird.view.GameView;
+import com.github.bhlangonijr.chesslib.Square;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
@@ -18,6 +19,7 @@ public class GameController {
     private final ChessBoardView chessView;
 
     private final ChessController chessController;
+    private boolean carryPressed;
     private boolean jumpPressed;
     private boolean leftPressed;
     private boolean rightPressed;
@@ -55,6 +57,13 @@ public class GameController {
                 rightPressed = true;
             }
 
+            if (event.getCode() == KeyCode.E) {
+                if (!carryPressed) {
+                    birdView.setCarriedPieceSymbol(chessController.toggleCarryAt(getBirdSquare()));
+                }
+                carryPressed = true;
+            }
+
         });
 
         scene.setOnKeyReleased(event -> {
@@ -68,6 +77,10 @@ public class GameController {
 
             if (event.getCode() == KeyCode.D) {
                 rightPressed = false;
+            }
+
+            if (event.getCode() == KeyCode.E) {
+                carryPressed = false;
             }
         });
     }
@@ -96,5 +109,11 @@ public class GameController {
         }
 
         return leftPressed ? -1 : 1;
+    }
+
+    private Square getBirdSquare() {
+        double centerX = bird.getX() + bird.getWidth() / 2;
+        double centerY = bird.getY() + bird.getHeight() / 2;
+        return ChessBoardView.squareForPoint(centerX, centerY);
     }
 }

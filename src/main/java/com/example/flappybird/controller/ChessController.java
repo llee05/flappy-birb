@@ -2,6 +2,7 @@ package com.example.flappybird.controller;
 
 import com.example.flappybird.model.ChessGameModel;
 import com.example.flappybird.view.ChessBoardView;
+import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Square;
 
 import java.util.Collections;
@@ -9,12 +10,11 @@ import java.util.Collections;
 public class ChessController {
     private final ChessGameModel model;
     private final ChessBoardView view;
-    private Square selectedSquare = Square.NONE;
+    private Square carriedSquare = Square.NONE;
 
     public ChessController(ChessBoardView view) {
         this.model = new ChessGameModel();
         this.view = view;
-        this.view.setSquareClickHandler(this::handleSquareClick);
         this.view.update(model.getBoard());
     }
 
@@ -23,54 +23,52 @@ public class ChessController {
         updateSelectionHighlights();
     }
 
-    private void handleSquareClick(int row, int col) {
-        Square clickedSquare = ChessBoardView.squareForCell(row, col);
+    public String toggleCarryAt(Square square) {
+        if (carriedSquare == Square.NONE) {
+            pickUpAt(square);
+        } else {
+            dropAt(square);
+        }
 
-        if (selectedSquare == Square.NONE) {
-            selectIfCurrentSidePiece(clickedSquare);
+        return getCarriedPieceSymbol();
+    }
+
+    private void pickUpAt(Square square) {
+        if (!model.hasCurrentSidePiece(square)) {
             return;
         }
 
-        if (clickedSquare == selectedSquare) {
-            clearSelection();
-            return;
-        }
+        carriedSquare = square;
+        view.setHiddenPieceSquare(carriedSquare);
+        refresh();
+    }
 
-        if (model.tryMove(selectedSquare, clickedSquare)) {
-            selectedSquare = Square.NONE;
+    private void dropAt(Square square) {
+        if (square == carriedSquare || model.tryMove(carriedSquare, square)) {
+            carriedSquare = Square.NONE;
+            view.setHiddenPieceSquare(Square.NONE);
             refresh();
             return;
         }
 
-        if (model.hasCurrentSidePiece(clickedSquare)) {
-            selectSquare(clickedSquare);
-        } else {
-            clearSelection();
-        }
-    }
-
-    private void selectIfCurrentSidePiece(Square square) {
-        if (model.hasCurrentSidePiece(square)) {
-            selectSquare(square);
-        }
-    }
-
-    private void selectSquare(Square square) {
-        selectedSquare = square;
         updateSelectionHighlights();
     }
 
-    private void clearSelection() {
-        selectedSquare = Square.NONE;
-        updateSelectionHighlights();
+    private String getCarriedPieceSymbol() {
+        if (carriedSquare == Square.NONE) {
+            return null;
+        }
+
+        Piece piece = model.getPiece(carriedSquare);
+        return piece == Piece.NONE ? null : piece.getFanSymbol();
     }
 
     private void updateSelectionHighlights() {
-        if (selectedSquare == Square.NONE) {
+        if (carriedSquare == Square.NONE) {
             view.showSelection(Square.NONE, Collections.emptyList());
             return;
         }
 
-        view.showSelection(selectedSquare, model.getLegalTargetSquares(selectedSquare));
+        view.showSelection(carriedSquare, model.getLegalTargetSquares(carriedSquare));
     }
 }

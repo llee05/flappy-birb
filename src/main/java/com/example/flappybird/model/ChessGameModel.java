@@ -74,6 +74,10 @@ public class ChessGameModel {
     }
 
     public boolean hasCurrentSidePiece(Square square) {
+        if (square == Square.NONE) {
+            return false;
+        }
+
         Piece piece = getPiece(square);
         return piece != Piece.NONE && piece.getPieceSide() == getSideToMove();
     }

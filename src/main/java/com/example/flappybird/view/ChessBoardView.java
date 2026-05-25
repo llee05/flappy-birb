@@ -29,6 +29,7 @@ public class ChessBoardView {
     private final GridPane root = new GridPane();
     private final StackPane[][] squares = new StackPane[BOARD_SIZE][BOARD_SIZE];
     private final Rectangle[][] tiles = new Rectangle[BOARD_SIZE][BOARD_SIZE];
+    private Square hiddenPieceSquare = Square.NONE;
     private BiConsumer<Integer, Integer> squareClickHandler;
 
     public ChessBoardView() {
@@ -44,7 +45,6 @@ public class ChessBoardView {
 
                 int squareRow = row;
                 int squareCol = col;
-                square.setCursor(Cursor.HAND);
                 square.setOnMouseClicked(event -> {
                     if (squareClickHandler != null) {
                         squareClickHandler.accept(squareRow, squareCol);
@@ -63,12 +63,34 @@ public class ChessBoardView {
         return Square.encode(Rank.allRanks[BOARD_SIZE - 1 - row], File.allFiles[col]);
     }
 
+    public static Square squareForPoint(double x, double y) {
+        if (x < 0 || y < 0) {
+            return Square.NONE;
+        }
+
+        int col = (int) (x / TILE_SIZE);
+        int row = (int) (y / TILE_SIZE);
+
+        if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
+            return Square.NONE;
+        }
+
+        return squareForCell(row, col);
+    }
+
     public GridPane getNode() {
         return root;
     }
 
     public void setSquareClickHandler(BiConsumer<Integer, Integer> squareClickHandler) {
         this.squareClickHandler = squareClickHandler;
+
+        Cursor cursor = squareClickHandler == null ? Cursor.DEFAULT : Cursor.HAND;
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                squares[row][col].setCursor(cursor);
+            }
+        }
     }
 
     public void addPiece(int row, int col, String symbol) {
@@ -86,7 +108,7 @@ public class ChessBoardView {
             }
 
             Piece piece = board.getPiece(square);
-            if (piece == Piece.NONE) {
+            if (piece == Piece.NONE || square == hiddenPieceSquare) {
                 continue;
             }
 
@@ -110,6 +132,10 @@ public class ChessBoardView {
             targetTile.setStroke(LEGAL_TARGET_STROKE);
             targetTile.setStrokeWidth(4);
         }
+    }
+
+    public void setHiddenPieceSquare(Square hiddenPieceSquare) {
+        this.hiddenPieceSquare = hiddenPieceSquare == null ? Square.NONE : hiddenPieceSquare;
     }
 
     private void clearPieces() {
