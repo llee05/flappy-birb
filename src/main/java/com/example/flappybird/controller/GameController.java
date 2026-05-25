@@ -18,6 +18,8 @@ public class GameController {
     private final ChessBoardView chessView;
 
     private final ChessController chessController;
+    private boolean leftPressed;
+    private boolean rightPressed;
 
     public GameController() {
         bird = new Birb(
@@ -42,22 +44,31 @@ public class GameController {
             }
 
             if (event.getCode() == KeyCode.A) {
-                bird.dashLeft();
+                leftPressed = true;
             }
 
             if (event.getCode() == KeyCode.D) {
-                bird.dashRight();
+                rightPressed = true;
             }
 
         });
 
+        scene.setOnKeyReleased(event -> {
+            if (event.getCode() == KeyCode.A) {
+                leftPressed = false;
+            }
 
+            if (event.getCode() == KeyCode.D) {
+                rightPressed = false;
+            }
+        });
     }
 
     public void startGameLoop() {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
+                bird.setHorizontalInput(getHorizontalInput());
                 bird.update();
                 bird.constrainToBounds(WINDOW_WIDTH, WINDOW_HEIGHT);
                 birdView.render(bird);
@@ -69,5 +80,13 @@ public class GameController {
 
     public GameView getGameView() {
         return gameView;
+    }
+
+    private int getHorizontalInput() {
+        if (leftPressed == rightPressed) {
+            return 0;
+        }
+
+        return leftPressed ? -1 : 1;
     }
 }

@@ -1,17 +1,20 @@
 package com.example.flappybird.model;
 
 public class Birb {
-    private static final double GRAVITY = 0.03;
-    private static final double JUMP_VELOCITY = -1.5;
-    private static final double DASH_VELOCITY = 1.25;
-    private static final double MAX_FALL_SPEED = 2.0;
-    private static final double HORIZONTAL_DAMPING = 0.92;
+    private static final double GRAVITY = 0.003;
+    private static final double JUMP_VELOCITY = -0.8;
+    private static final double HORIZONTAL_MOVE_SPEED = 0.25;
+    private static final double MAX_FALL_SPEED = 1.0;
+    private static final double HORIZONTAL_ACCELERATION = 0.05;
+    private static final double HORIZONTAL_TURN_ACCELERATION = 0.10;
+    private static final double HORIZONTAL_FRICTION = 0.30;
     private static final double MIN_HORIZONTAL_SPEED = 0.02;
 
     private double x;
     private double y;
     private double velocityX;
     private double velocityY;
+    private int horizontalInput;
 
     private final double width;
     private final double height;
@@ -23,31 +26,48 @@ public class Birb {
         this.height = height;
         this.velocityX = 0;
         this.velocityY = 0;
+        this.horizontalInput = 0;
     }
 
     public void jump() {
         velocityY = JUMP_VELOCITY;
     }
 
-    public void dashLeft() {
-        velocityX = -DASH_VELOCITY;
-    }
-
-    public void dashRight() {
-        velocityX = DASH_VELOCITY;
+    public void setHorizontalInput(int direction) {
+        horizontalInput = Integer.compare(direction, 0);
     }
 
     public void update() {
         velocityY += GRAVITY;
         velocityY = Math.min(velocityY, MAX_FALL_SPEED);
+        updateHorizontalVelocity();
 
         x += velocityX;
         y += velocityY;
+    }
 
-        velocityX *= HORIZONTAL_DAMPING;
-        if (Math.abs(velocityX) < MIN_HORIZONTAL_SPEED) {
+    private void updateHorizontalVelocity() {
+        if (horizontalInput != 0) {
+            double targetVelocity = horizontalInput * HORIZONTAL_MOVE_SPEED;
+            double acceleration = Math.signum(velocityX) == -horizontalInput
+                    ? HORIZONTAL_TURN_ACCELERATION
+                    : HORIZONTAL_ACCELERATION;
+
+            velocityX = moveToward(velocityX, targetVelocity, acceleration);
+        } else {
+            velocityX *= HORIZONTAL_FRICTION;
+        }
+
+        if (horizontalInput == 0 && Math.abs(velocityX) < MIN_HORIZONTAL_SPEED) {
             velocityX = 0;
         }
+    }
+
+    private double moveToward(double current, double target, double maxDelta) {
+        if (current < target) {
+            return Math.min(current + maxDelta, target);
+        }
+        return Math.max(current - maxDelta, target);
     }
 
     public void constrainToBounds(double maxWidth, double maxHeight) {
@@ -92,5 +112,7 @@ public class Birb {
         this.y = y;
     }
 
-    public void setVelocityX(double x) { this.velocityX = x; }
+    public void setVelocityX(double x) {
+        this.velocityX = x;
+    }
 }
