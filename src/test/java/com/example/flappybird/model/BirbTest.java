@@ -61,7 +61,7 @@ class BirbTest {
             birb.update();
         }
 
-        assertEquals(11.0, birb.getX(), EPSILON);
+        assertEquals(11.9, birb.getX(), EPSILON);
     }
 
     @Test
@@ -71,11 +71,11 @@ class BirbTest {
         birb.setHorizontalInput(999);
         birb.update();
 
-        assertEquals(10.05, birb.getX(), EPSILON);
+        assertEquals(10.1, birb.getX(), EPSILON);
     }
 
     @Test
-    void horizontalVelocityDecaysAfterInputStops() {
+    void horizontalVelocityCoastsAfterInputStops() {
         Birb birb = new Birb(10, 20, 30, 40);
 
         birb.setHorizontalInput(1);
@@ -83,16 +83,35 @@ class BirbTest {
             birb.update();
         }
         double movingRightX = birb.getX();
+        double movingRightVelocity = birb.getVelocityX();
 
         birb.setHorizontalInput(0);
         birb.update();
         double firstDrift = birb.getX() - movingRightX;
+        double releaseVelocity = birb.getVelocityX();
         birb.update();
         double secondDrift = birb.getX() - movingRightX - firstDrift;
 
+        assertTrue(releaseVelocity > 0);
+        assertTrue(releaseVelocity < movingRightVelocity);
         assertTrue(firstDrift > 0);
         assertTrue(secondDrift > 0);
         assertTrue(secondDrift < firstDrift);
+
+        for (int i = 0; i < 28; i++) {
+            birb.update();
+        }
+
+        assertTrue(birb.getX() > movingRightX + 10.0);
+
+        for (int i = 0; i < 500; i++) {
+            birb.update();
+        }
+        double restingX = birb.getX();
+
+        birb.update();
+
+        assertEquals(restingX, birb.getX(), EPSILON);
     }
 
     @Test

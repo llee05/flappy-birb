@@ -3,12 +3,12 @@ package com.example.flappybird.model;
 public class Birb {
     private static final double GRAVITY = 0.003;
     private static final double JUMP_VELOCITY = -0.8;
-    private static final double HORIZONTAL_MOVE_SPEED = 0.25;
+    private static final double HORIZONTAL_MOVE_SPEED = 0.45;
     private static final double MAX_FALL_SPEED = 1.0;
-    private static final double HORIZONTAL_ACCELERATION = 0.05;
+    private static final double HORIZONTAL_ACCELERATION = 0.10;
     private static final double HORIZONTAL_TURN_ACCELERATION = 0.10;
-    private static final double HORIZONTAL_FRICTION = 0.30;
-    private static final double MIN_HORIZONTAL_SPEED = 0.02;
+    private static final double HORIZONTAL_FRICTION = 0.985;
+    private static final double MIN_HORIZONTAL_SPEED = 0.001;
 
     private double x;
     private double y;
@@ -98,6 +98,10 @@ public class Birb {
 
     public double getVelocityY() {
         return velocityY;
+    }
+
+    public double getVelocityX() {
+        return velocityX;
     }
 
     public double getWidth() {
