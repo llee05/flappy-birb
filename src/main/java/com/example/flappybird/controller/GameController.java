@@ -18,11 +18,9 @@ public class GameController {
     private final GameView gameView;
     private final ChessBoardView chessView;
 
+    private final BirbController birbController;
     private final ChessController chessController;
     private boolean carryPressed;
-    private boolean jumpPressed;
-    private boolean leftPressed;
-    private boolean rightPressed;
 
     public GameController() {
         bird = new Birb(
@@ -34,6 +32,7 @@ public class GameController {
 
         birdView = new BirbView();
         chessView = new ChessBoardView();
+        birbController = new BirbController(bird, WINDOW_WIDTH, WINDOW_HEIGHT);
         chessController = new ChessController(chessView);
         gameView = new GameView(chessView, birdView);
 
@@ -42,20 +41,7 @@ public class GameController {
 
     public void setupInput(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.SPACE) {
-                if (!jumpPressed) {
-                    bird.jump();
-                }
-                jumpPressed = true;
-            }
-
-            if (event.getCode() == KeyCode.A) {
-                leftPressed = true;
-            }
-
-            if (event.getCode() == KeyCode.D) {
-                rightPressed = true;
-            }
+            birbController.handleKeyPressed(event.getCode());
 
             if (event.getCode() == KeyCode.E) {
                 if (!carryPressed) {
@@ -67,17 +53,7 @@ public class GameController {
         });
 
         scene.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.SPACE) {
-                jumpPressed = false;
-            }
-
-            if (event.getCode() == KeyCode.A) {
-                leftPressed = false;
-            }
-
-            if (event.getCode() == KeyCode.D) {
-                rightPressed = false;
-            }
+            birbController.handleKeyReleased(event.getCode());
 
             if (event.getCode() == KeyCode.E) {
                 carryPressed = false;
@@ -89,9 +65,7 @@ public class GameController {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                bird.setHorizontalInput(getHorizontalInput());
-                bird.update();
-                bird.constrainToBounds(WINDOW_WIDTH, WINDOW_HEIGHT);
+                birbController.update();
                 birdView.render(bird);
             }
         };
@@ -101,14 +75,6 @@ public class GameController {
 
     public GameView getGameView() {
         return gameView;
-    }
-
-    private int getHorizontalInput() {
-        if (leftPressed == rightPressed) {
-            return 0;
-        }
-
-        return leftPressed ? -1 : 1;
     }
 
     private Square getBirdSquare() {
