@@ -16,6 +16,7 @@ class BirbTest {
         assertEquals(20, birb.getY(), EPSILON);
         assertEquals(30, birb.getWidth(), EPSILON);
         assertEquals(40, birb.getHeight(), EPSILON);
+        assertEquals(0, birb.getVelocityX(), EPSILON);
         assertEquals(0, birb.getVelocityY(), EPSILON);
     }
 
@@ -75,6 +76,36 @@ class BirbTest {
     }
 
     @Test
+    void horizontalInputCanMoveLeftAtCappedSpeed() {
+        Birb birb = new Birb(10, 20, 30, 40);
+
+        birb.setHorizontalInput(-1);
+        for (int i = 0; i < 6; i++) {
+            birb.update();
+        }
+
+        assertEquals(8.1, birb.getX(), EPSILON);
+        assertEquals(-0.45, birb.getVelocityX(), EPSILON);
+    }
+
+    @Test
+    void reversingHorizontalInputTurnsBirdAround() {
+        Birb birb = new Birb(10, 20, 30, 40);
+
+        birb.setHorizontalInput(1);
+        for (int i = 0; i < 5; i++) {
+            birb.update();
+        }
+
+        birb.setHorizontalInput(-1);
+        for (int i = 0; i < 5; i++) {
+            birb.update();
+        }
+
+        assertTrue(birb.getVelocityX() < 0);
+    }
+
+    @Test
     void horizontalVelocityCoastsAfterInputStops() {
         Birb birb = new Birb(10, 20, 30, 40);
 
@@ -125,6 +156,25 @@ class BirbTest {
         assertEquals(0, birb.getX(), EPSILON);
         assertEquals(0, birb.getY(), EPSILON);
         assertEquals(0, birb.getVelocityY(), EPSILON);
+    }
+
+    @Test
+    void constrainToBoundsStopsOutwardHorizontalMovement() {
+        Birb leftEdgeBirb = new Birb(-12, 10, 30, 40);
+        leftEdgeBirb.setVelocityX(-0.5);
+
+        leftEdgeBirb.constrainToBounds(800, 800);
+
+        assertEquals(0, leftEdgeBirb.getX(), EPSILON);
+        assertEquals(0, leftEdgeBirb.getVelocityX(), EPSILON);
+
+        Birb rightEdgeBirb = new Birb(790, 10, 30, 40);
+        rightEdgeBirb.setVelocityX(0.5);
+
+        rightEdgeBirb.constrainToBounds(800, 800);
+
+        assertEquals(770, rightEdgeBirb.getX(), EPSILON);
+        assertEquals(0, rightEdgeBirb.getVelocityX(), EPSILON);
     }
 
     @Test

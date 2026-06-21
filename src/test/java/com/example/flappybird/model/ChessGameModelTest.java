@@ -48,6 +48,16 @@ class ChessGameModelTest {
     }
 
     @Test
+    void currentSidePieceChangesAfterLegalMove() {
+        ChessGameModel model = new ChessGameModel();
+
+        assertTrue(model.tryMove(Square.E2, Square.E4));
+
+        assertFalse(model.hasCurrentSidePiece(Square.E4));
+        assertTrue(model.hasCurrentSidePiece(Square.E7));
+    }
+
+    @Test
     void legalMoveUpdatesBoardSideToMoveAndCachedBoardState() {
         ChessGameModel model = new ChessGameModel();
 
@@ -84,6 +94,14 @@ class ChessGameModelTest {
     }
 
     @Test
+    void legalTargetsDeduplicatePromotionMoves() {
+        ChessGameModel model = new ChessGameModel();
+        model.getBoard().loadFromFen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1");
+
+        assertEquals(List.of(Square.A8), model.getLegalTargetSquares(Square.A7));
+    }
+
+    @Test
     void pawnPromotionDefaultsToQueenWhenOnlySquaresAreProvided() {
         ChessGameModel model = new ChessGameModel();
         model.getBoard().loadFromFen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1");
@@ -92,5 +110,16 @@ class ChessGameModelTest {
 
         assertEquals(Piece.WHITE_QUEEN, model.getPiece(Square.A8));
         assertEquals(Piece.WHITE_QUEEN, model.getBoardState()[Square.A8.getRank().ordinal()][Square.A8.getFile().ordinal()]);
+    }
+
+    @Test
+    void tryMoveObjectUsesRequestedPromotionPiece() {
+        ChessGameModel model = new ChessGameModel();
+        model.getBoard().loadFromFen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1");
+
+        assertTrue(model.tryMove(new Move(Square.A7, Square.A8, Piece.WHITE_KNIGHT)));
+
+        assertEquals(Piece.WHITE_KNIGHT, model.getPiece(Square.A8));
+        assertEquals(Piece.WHITE_KNIGHT, model.getBoardState()[Square.A8.getRank().ordinal()][Square.A8.getFile().ordinal()]);
     }
 }

@@ -26,6 +26,18 @@ class ChessControllerTest {
     }
 
     @Test
+    void refreshRendersBoardAndClearsSelectionWhenNothingIsCarried() {
+        RecordingChessBoardView view = new RecordingChessBoardView();
+        ChessController controller = new ChessController(view);
+
+        controller.refresh();
+
+        assertEquals(2, view.updateCount);
+        assertEquals(Square.NONE, view.selectedSquare);
+        assertEquals(Collections.emptyList(), view.legalTargets);
+    }
+
+    @Test
     void cannotPickUpOpposingPieceAtStart() {
         RecordingChessBoardView view = new RecordingChessBoardView();
         ChessController controller = new ChessController(view);
@@ -36,6 +48,25 @@ class ChessControllerTest {
         assertEquals(1, view.updateCount);
         assertEquals(Square.NONE, view.selectedSquare);
         assertEquals(Collections.emptyList(), view.legalTargets);
+    }
+
+    @Test
+    void afterMoveOnlyNextSideToMoveCanPickUpPieces() {
+        RecordingChessBoardView view = new RecordingChessBoardView();
+        ChessController controller = new ChessController(view);
+
+        controller.toggleCarryAt(Square.E2);
+        controller.toggleCarryAt(Square.E4);
+        int updateCountAfterMove = view.updateCount;
+
+        assertNull(controller.toggleCarryAt(Square.E4));
+        assertEquals(updateCountAfterMove, view.updateCount);
+        assertEquals(Square.NONE, view.hiddenPieceSquare);
+
+        assertEquals(Piece.BLACK_PAWN.getFanSymbol(), controller.toggleCarryAt(Square.E7));
+        assertEquals(Square.E7, view.hiddenPieceSquare);
+        assertEquals(Square.E7, view.selectedSquare);
+        assertEquals(List.of(Square.E5, Square.E6), view.legalTargets);
     }
 
     @Test
@@ -90,9 +121,11 @@ class ChessControllerTest {
         ChessController controller = new ChessController(view);
 
         controller.toggleCarryAt(Square.E2);
+        int updateCountAfterPickUp = view.updateCount;
         String carriedSymbolAfterDrop = controller.toggleCarryAt(Square.E5);
 
         assertEquals(Piece.WHITE_PAWN.getFanSymbol(), carriedSymbolAfterDrop);
+        assertEquals(updateCountAfterPickUp, view.updateCount);
         assertEquals(Square.E2, view.hiddenPieceSquare);
         assertEquals(Side.WHITE, view.lastBoard.getSideToMove());
         assertEquals(Piece.WHITE_PAWN, view.lastBoard.getPiece(Square.E2));

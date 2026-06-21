@@ -44,6 +44,22 @@ class BirbControllerTest {
     }
 
     @Test
+    void releasingOneOfOpposingHorizontalInputsUsesRemainingDirection() {
+        Birb birb = new Birb(10, 20, 30, 40);
+        BirbController controller = new BirbController(birb, 800, 800);
+
+        controller.handleKeyPressed(KeyCode.A);
+        controller.handleKeyPressed(KeyCode.D);
+        controller.update();
+
+        controller.handleKeyReleased(KeyCode.A);
+        controller.update();
+
+        assertEquals(10.1, birb.getX(), EPSILON);
+        assertTrue(birb.getVelocityX() > 0);
+    }
+
+    @Test
     void heldJumpOnlyTriggersOnceUntilReleased() {
         Birb birb = new Birb(10, 20, 30, 40);
         BirbController controller = new BirbController(birb, 800, 800);
