@@ -35,7 +35,7 @@ public class GameController {
         );
         blackBird = new PlayerBird(
                 Side.BLACK,
-                new Birb(425, 125, BIRD_SIZE, BIRD_SIZE),
+                new Birb(425, 125, BIRD_SIZE, BIRD_SIZE, -1),
                 new BirbView(true),
                 KeyCode.LEFT,
                 KeyCode.RIGHT,

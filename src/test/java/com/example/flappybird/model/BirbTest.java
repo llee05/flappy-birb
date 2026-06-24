@@ -54,6 +54,39 @@ class BirbTest {
     }
 
     @Test
+    void invertedGravityFallsUpward() {
+        Birb birb = new Birb(10, 20, 30, 40, -1);
+
+        birb.update();
+
+        assertEquals(-0.003, birb.getVelocityY(), EPSILON);
+        assertEquals(19.997, birb.getY(), EPSILON);
+        assertEquals(10, birb.getX(), EPSILON);
+    }
+
+    @Test
+    void invertedGravityJumpPushesDownwardBeforeGravityOnNextUpdate() {
+        Birb birb = new Birb(10, 20, 30, 40, -1);
+
+        birb.jump();
+        birb.update();
+
+        assertEquals(0.797, birb.getVelocityY(), EPSILON);
+        assertEquals(20.797, birb.getY(), EPSILON);
+    }
+
+    @Test
+    void invertedGravityFallSpeedIsCapped() {
+        Birb birb = new Birb(0, 100, 30, 40, -1);
+
+        for (int i = 0; i < 1_000; i++) {
+            birb.update();
+        }
+
+        assertEquals(-1.0, birb.getVelocityY(), EPSILON);
+    }
+
+    @Test
     void horizontalInputAcceleratesTowardMoveSpeed() {
         Birb birb = new Birb(10, 20, 30, 40);
 

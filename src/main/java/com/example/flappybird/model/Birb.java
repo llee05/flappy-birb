@@ -2,7 +2,7 @@ package com.example.flappybird.model;
 
 public class Birb {
     private static final double GRAVITY = 0.003;
-    private static final double JUMP_VELOCITY = -0.8;
+    private static final double JUMP_SPEED = 0.8;
     private static final double HORIZONTAL_MOVE_SPEED = 0.45;
     private static final double MAX_FALL_SPEED = 1.0;
     private static final double HORIZONTAL_ACCELERATION = 0.10;
@@ -18,19 +18,25 @@ public class Birb {
 
     private final double width;
     private final double height;
+    private final int gravityDirection;
 
     public Birb(double x, double y, double width, double height) {
+        this(x, y, width, height, 1);
+    }
+
+    public Birb(double x, double y, double width, double height, int gravityDirection) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.gravityDirection = gravityDirection < 0 ? -1 : 1;
         this.velocityX = 0;
         this.velocityY = 0;
         this.horizontalInput = 0;
     }
 
     public void jump() {
-        velocityY = JUMP_VELOCITY;
+        velocityY = -gravityDirection * JUMP_SPEED;
     }
 
     public void setHorizontalInput(int direction) {
@@ -38,12 +44,20 @@ public class Birb {
     }
 
     public void update() {
-        velocityY += GRAVITY;
-        velocityY = Math.min(velocityY, MAX_FALL_SPEED);
+        velocityY += GRAVITY * gravityDirection;
+        velocityY = capFallSpeed(velocityY);
         updateHorizontalVelocity();
 
         x += velocityX;
         y += velocityY;
+    }
+
+    private double capFallSpeed(double velocity) {
+        if (gravityDirection > 0) {
+            return Math.min(velocity, MAX_FALL_SPEED);
+        }
+
+        return Math.max(velocity, -MAX_FALL_SPEED);
     }
 
     private void updateHorizontalVelocity() {
