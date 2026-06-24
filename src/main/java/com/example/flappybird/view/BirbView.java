@@ -2,6 +2,7 @@ package com.example.flappybird.view;
 
 import com.example.flappybird.model.Birb;
 import javafx.scene.Group;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
@@ -17,6 +18,10 @@ public class BirbView {
     private final Text carriedPieceText;
 
     public BirbView() {
+        this(false);
+    }
+
+    public BirbView(boolean darkVariant) {
         Image birdImage = new Image(
                 Objects.requireNonNull(
                         getClass().getResource("/images/bird.jpeg")
@@ -24,6 +29,14 @@ public class BirbView {
         );
 
         imageView = new ImageView(birdImage);
+        if (darkVariant) {
+            ColorAdjust colorAdjust = new ColorAdjust();
+            colorAdjust.setSaturation(-0.35);
+            colorAdjust.setBrightness(-0.35);
+            colorAdjust.setContrast(0.35);
+            imageView.setEffect(colorAdjust);
+        }
+
         carriedPieceText = new Text();
         carriedPieceText.setFont(Font.font("Serif", FontWeight.BOLD, 34));
         carriedPieceText.setFill(Color.WHITE);

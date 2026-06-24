@@ -4,6 +4,7 @@ import com.example.flappybird.model.Birb;
 import com.example.flappybird.view.BirbView;
 import com.example.flappybird.view.ChessBoardView;
 import com.example.flappybird.view.GameView;
+import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
@@ -12,52 +13,54 @@ import javafx.scene.input.KeyCode;
 public class GameController {
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 800;
+    private static final double BIRD_SIZE = 50;
 
-    private final Birb bird;
-    private final BirbView birdView;
+    private final PlayerBird whiteBird;
+    private final PlayerBird blackBird;
     private final GameView gameView;
     private final ChessBoardView chessView;
 
-    private final BirbController birbController;
     private final ChessController chessController;
-    private boolean carryPressed;
+    private PlayerBird carrier;
 
     public GameController() {
-        bird = new Birb(
-                WINDOW_WIDTH / 2.0 - 25,
-                WINDOW_HEIGHT / 2.0 - 25,
-                50,
-                50
+        whiteBird = new PlayerBird(
+                Side.WHITE,
+                new Birb(425, 625, BIRD_SIZE, BIRD_SIZE),
+                new BirbView(),
+                KeyCode.A,
+                KeyCode.D,
+                KeyCode.SPACE,
+                KeyCode.E
         );
-
-        birdView = new BirbView();
+        blackBird = new PlayerBird(
+                Side.BLACK,
+                new Birb(425, 125, BIRD_SIZE, BIRD_SIZE),
+                new BirbView(true),
+                KeyCode.LEFT,
+                KeyCode.RIGHT,
+                KeyCode.UP,
+                KeyCode.ENTER
+        );
         chessView = new ChessBoardView();
-        birbController = new BirbController(bird, WINDOW_WIDTH, WINDOW_HEIGHT);
         chessController = new ChessController(chessView);
-        gameView = new GameView(chessView, birdView);
+        gameView = new GameView(chessView, whiteBird.view, blackBird.view);
 
-        birdView.render(bird);
+        whiteBird.render();
+        blackBird.render();
     }
 
     public void setupInput(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            birbController.handleKeyPressed(event.getCode());
-
-            if (event.getCode() == KeyCode.E) {
-                if (!carryPressed) {
-                    birdView.setCarriedPieceSymbol(chessController.toggleCarryAt(getBirdSquare()));
-                }
-                carryPressed = true;
-            }
-
+            whiteBird.handleKeyPressed(event.getCode());
+            blackBird.handleKeyPressed(event.getCode());
+            handleCarryKeyPressed(whiteBird, event.getCode());
+            handleCarryKeyPressed(blackBird, event.getCode());
         });
 
         scene.setOnKeyReleased(event -> {
-            birbController.handleKeyReleased(event.getCode());
-
-            if (event.getCode() == KeyCode.E) {
-                carryPressed = false;
-            }
+            whiteBird.handleKeyReleased(event.getCode());
+            blackBird.handleKeyReleased(event.getCode());
         });
     }
 
@@ -65,8 +68,8 @@ public class GameController {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                birbController.update();
-                birdView.render(bird);
+                whiteBird.update();
+                blackBird.update();
             }
         };
 
@@ -77,9 +80,81 @@ public class GameController {
         return gameView;
     }
 
-    private Square getBirdSquare() {
+    private void handleCarryKeyPressed(PlayerBird playerBird, KeyCode keyCode) {
+        if (keyCode != playerBird.carryKey) {
+            return;
+        }
+
+        if (playerBird.carryPressed) {
+            return;
+        }
+
+        playerBird.carryPressed = true;
+        toggleCarry(playerBird);
+    }
+
+    private void toggleCarry(PlayerBird playerBird) {
+        if (carrier != null && carrier != playerBird) {
+            return;
+        }
+
+        if (carrier == null && chessController.getSideToMove() != playerBird.side) {
+            return;
+        }
+
+        String carriedPieceSymbol = chessController.toggleCarryAt(getBirdSquare(playerBird.bird));
+        playerBird.view.setCarriedPieceSymbol(carriedPieceSymbol);
+        carrier = carriedPieceSymbol == null ? null : playerBird;
+    }
+
+    private Square getBirdSquare(Birb bird) {
         double centerX = bird.getX() + bird.getWidth() / 2;
         double centerY = bird.getY() + bird.getHeight() / 2;
         return ChessBoardView.squareForPoint(centerX, centerY);
+    }
+
+    private class PlayerBird {
+        private final Side side;
+        private final Birb bird;
+        private final BirbView view;
+        private final BirbController controller;
+        private final KeyCode carryKey;
+        private boolean carryPressed;
+
+        private PlayerBird(
+                Side side,
+                Birb bird,
+                BirbView view,
+                KeyCode leftKey,
+                KeyCode rightKey,
+                KeyCode jumpKey,
+                KeyCode carryKey
+        ) {
+            this.side = side;
+            this.bird = bird;
+            this.view = view;
+            this.controller = new BirbController(bird, WINDOW_WIDTH, WINDOW_HEIGHT, leftKey, rightKey, jumpKey);
+            this.carryKey = carryKey;
+        }
+
+        private void handleKeyPressed(KeyCode keyCode) {
+            controller.handleKeyPressed(keyCode);
+        }
+
+        private void handleKeyReleased(KeyCode keyCode) {
+            controller.handleKeyReleased(keyCode);
+            if (keyCode == carryKey) {
+                carryPressed = false;
+            }
+        }
+
+        private void update() {
+            controller.update();
+            render();
+        }
+
+        private void render() {
+            view.render(bird);
+        }
     }
 }

@@ -31,6 +31,26 @@ class BirbControllerTest {
     }
 
     @Test
+    void customKeyBindingsMoveAndJumpTheBird() {
+        Birb birb = new Birb(10, 20, 30, 40);
+        BirbController controller = new BirbController(
+                birb,
+                800,
+                800,
+                KeyCode.LEFT,
+                KeyCode.RIGHT,
+                KeyCode.UP
+        );
+
+        controller.handleKeyPressed(KeyCode.RIGHT);
+        controller.handleKeyPressed(KeyCode.UP);
+        controller.update();
+
+        assertEquals(10.1, birb.getX(), EPSILON);
+        assertEquals(-0.797, birb.getVelocityY(), EPSILON);
+    }
+
+    @Test
     void opposingHorizontalInputsCancelOut() {
         Birb birb = new Birb(10, 20, 30, 40);
         BirbController controller = new BirbController(birb, 800, 800);

@@ -3,6 +3,7 @@ package com.example.flappybird.controller;
 import com.example.flappybird.model.ChessGameModel;
 import com.example.flappybird.view.ChessBoardView;
 import com.github.bhlangonijr.chesslib.Piece;
+import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 
 import java.util.Collections;
@@ -21,6 +22,10 @@ public class ChessController {
     public void refresh() {
         view.update(model.getBoard());
         updateSelectionHighlights();
+    }
+
+    public Side getSideToMove() {
+        return model.getSideToMove();
     }
 
     public String toggleCarryAt(Square square) {

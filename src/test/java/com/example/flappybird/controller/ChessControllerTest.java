@@ -58,6 +58,7 @@ class ChessControllerTest {
         controller.toggleCarryAt(Square.E2);
         controller.toggleCarryAt(Square.E4);
         int updateCountAfterMove = view.updateCount;
+        assertEquals(Side.BLACK, controller.getSideToMove());
 
         assertNull(controller.toggleCarryAt(Square.E4));
         assertEquals(updateCountAfterMove, view.updateCount);
