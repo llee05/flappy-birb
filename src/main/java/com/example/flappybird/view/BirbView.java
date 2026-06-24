@@ -22,13 +22,13 @@ public class BirbView {
     }
 
     public BirbView(boolean darkVariant) {
-        Image birdImage = new Image(
+        Image wingsImage = new Image(
                 Objects.requireNonNull(
-                        getClass().getResource("/images/bird.jpeg")
+                        getClass().getResource("/images/wings.png")
                 ).toExternalForm()
         );
 
-        imageView = new ImageView(birdImage);
+        imageView = new ImageView(wingsImage);
         if (darkVariant) {
             ColorAdjust colorAdjust = new ColorAdjust();
             colorAdjust.setSaturation(-0.35);
