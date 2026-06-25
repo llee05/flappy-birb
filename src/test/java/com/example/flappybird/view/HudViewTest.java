@@ -37,6 +37,16 @@ class HudViewTest {
         assertEquals(1, visibleRunningLabels(view).size());
     }
 
+    @Test
+    void updateTimersFormatsBothClockValues() {
+        HudView view = new HudView(200, 800);
+
+        view.updateTimers(284, -4);
+
+        assertEquals("04:44", timerText(view, "whiteTimerText").getText());
+        assertEquals("00:00", timerText(view, "blackTimerText").getText());
+    }
+
     private Rectangle timerCard(HudView view, String id) {
         return view.getNode().getChildren().stream()
                 .filter(Rectangle.class::isInstance)

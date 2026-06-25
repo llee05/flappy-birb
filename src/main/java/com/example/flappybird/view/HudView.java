@@ -105,6 +105,11 @@ public class HudView {
         blackStatusText.setVisible(sideToMove == Side.BLACK);
     }
 
+    public void updateTimers(long whiteRemainingSeconds, long blackRemainingSeconds) {
+        whiteTimerText.setText(formatTime(whiteRemainingSeconds));
+        blackTimerText.setText(formatTime(blackRemainingSeconds));
+    }
+
     private Rectangle createTimerCard(double x, double y, double width, double height) {
         Rectangle timerCard = new Rectangle(x, y, width, height);
         timerCard.setArcWidth(7);
@@ -145,6 +150,13 @@ public class HudView {
         } else {
             timerCard.setEffect(null);
         }
+    }
+
+    private String formatTime(long remainingSeconds) {
+        long clampedSeconds = Math.max(0, remainingSeconds);
+        long minutes = clampedSeconds / 60;
+        long seconds = clampedSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
     }
 
     private Text createText(String value, int size, FontWeight weight) {

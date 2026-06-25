@@ -1,6 +1,7 @@
 package com.example.flappybird.controller;
 
 import com.example.flappybird.model.Birb;
+import com.example.flappybird.model.ChessClock;
 import com.example.flappybird.view.BirbView;
 import com.example.flappybird.view.ChessBoardView;
 import com.example.flappybird.view.GameView;
@@ -11,11 +12,14 @@ import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 
+import java.time.Duration;
+
 public class GameController {
     private static final int BOARD_WIDTH = 800;
     private static final int BOARD_HEIGHT = 800;
     private static final int HUD_WIDTH = 200;
     private static final double BIRD_SIZE = 50;
+    private static final Duration STARTING_CLOCK_TIME = Duration.ofMinutes(4).plusSeconds(45);
 
     private final PlayerBird whiteBird;
     private final PlayerBird blackBird;
@@ -24,6 +28,7 @@ public class GameController {
     private final HudView hudView;
 
     private final ChessController chessController;
+    private final ChessClock chessClock;
     private PlayerBird carrier;
 
     public GameController() {
@@ -48,6 +53,7 @@ public class GameController {
         chessView = new ChessBoardView();
         hudView = new HudView(HUD_WIDTH, BOARD_HEIGHT);
         chessController = new ChessController(chessView);
+        chessClock = new ChessClock(STARTING_CLOCK_TIME);
         gameView = new GameView(chessView, hudView, BOARD_WIDTH, whiteBird.view, blackBird.view);
 
         whiteBird.render();
@@ -73,8 +79,10 @@ public class GameController {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
+                chessClock.tick(now, chessController.getSideToMove());
                 whiteBird.update();
                 blackBird.update();
+                updateHud();
             }
         };
 
@@ -129,6 +137,10 @@ public class GameController {
 
     private void updateHud() {
         hudView.updateSideToMove(chessController.getSideToMove());
+        hudView.updateTimers(
+                chessClock.getRemainingSeconds(Side.WHITE),
+                chessClock.getRemainingSeconds(Side.BLACK)
+        );
     }
 
     private class PlayerBird {
