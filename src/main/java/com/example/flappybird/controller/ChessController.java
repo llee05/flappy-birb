@@ -5,13 +5,21 @@ import com.example.flappybird.view.ChessBoardView;
 import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
+import com.github.bhlangonijr.chesslib.move.Move;
+import com.github.bhlangonijr.chesslib.move.MoveConversionException;
+import com.github.bhlangonijr.chesslib.move.MoveList;
 
 import java.util.Collections;
 
 public class ChessController {
     private final ChessGameModel model;
     private final ChessBoardView view;
+    private final MoveList moveHistory = new MoveList();
     private Square carriedSquare = Square.NONE;
+    private CompletedMove completedMove;
+
+    public record CompletedMove(Side side, String notation) {
+    }
 
     public ChessController(ChessBoardView view) {
         this.model = new ChessGameModel();
@@ -29,6 +37,7 @@ public class ChessController {
     }
 
     public String toggleCarryAt(Square square) {
+        completedMove = null;
         if (carriedSquare == Square.NONE) {
             pickUpAt(square);
         } else {
@@ -36,6 +45,12 @@ public class ChessController {
         }
 
         return getCarriedPieceSymbol();
+    }
+
+    public CompletedMove consumeCompletedMove() {
+        CompletedMove move = completedMove;
+        completedMove = null;
+        return move;
     }
 
     private void pickUpAt(Square square) {
@@ -49,7 +64,18 @@ public class ChessController {
     }
 
     private void dropAt(Square square) {
-        if (square == carriedSquare || model.tryMove(carriedSquare, square)) {
+        if (square == carriedSquare) {
+            carriedSquare = Square.NONE;
+            view.setHiddenPieceSquare(Square.NONE);
+            refresh();
+            return;
+        }
+
+        Square from = carriedSquare;
+        Side movingSide = model.getSideToMove();
+        Move move = model.getLegalMove(from, square);
+        if (move != null && model.tryMove(move)) {
+            completedMove = new CompletedMove(movingSide, recordMove(move));
             carriedSquare = Square.NONE;
             view.setHiddenPieceSquare(Square.NONE);
             refresh();
@@ -57,6 +83,16 @@ public class ChessController {
         }
 
         updateSelectionHighlights();
+    }
+
+    private String recordMove(Move move) {
+        moveHistory.add(move);
+        try {
+            String[] sanMoves = moveHistory.toSanArray();
+            return sanMoves[sanMoves.length - 1];
+        } catch (MoveConversionException exception) {
+            return move.toString();
+        }
     }
 
     private String getCarriedPieceSymbol() {

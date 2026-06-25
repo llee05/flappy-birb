@@ -102,6 +102,10 @@ public class ChessGameModel {
         return false;
     }
 
+    public Move getLegalMove(Square from, Square to) {
+        return findLegalMove(from, to);
+    }
+
     private Move findLegalMove(Square from, Square to) {
         Move fallback = null;
 

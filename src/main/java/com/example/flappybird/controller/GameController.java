@@ -6,6 +6,7 @@ import com.example.flappybird.view.BirbView;
 import com.example.flappybird.view.ChessBoardView;
 import com.example.flappybird.view.GameView;
 import com.example.flappybird.view.HudView;
+import com.example.flappybird.view.MoveHistoryView;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 import javafx.animation.AnimationTimer;
@@ -17,6 +18,7 @@ import java.time.Duration;
 public class GameController {
     private static final int BOARD_WIDTH = 800;
     private static final int BOARD_HEIGHT = 800;
+    private static final int HISTORY_WIDTH = 200;
     private static final int HUD_WIDTH = 200;
     private static final double BIRD_SIZE = 50;
     private static final Duration STARTING_CLOCK_TIME = Duration.ofMinutes(4).plusSeconds(45);
@@ -25,6 +27,7 @@ public class GameController {
     private final PlayerBird blackBird;
     private final GameView gameView;
     private final ChessBoardView chessView;
+    private final MoveHistoryView moveHistoryView;
     private final HudView hudView;
 
     private final ChessController chessController;
@@ -51,10 +54,11 @@ public class GameController {
                 KeyCode.ENTER
         );
         chessView = new ChessBoardView();
+        moveHistoryView = new MoveHistoryView(HISTORY_WIDTH, BOARD_HEIGHT);
         hudView = new HudView(HUD_WIDTH, BOARD_HEIGHT);
         chessController = new ChessController(chessView);
         chessClock = new ChessClock(STARTING_CLOCK_TIME);
-        gameView = new GameView(chessView, hudView, BOARD_WIDTH, whiteBird.view, blackBird.view);
+        gameView = new GameView(chessView, moveHistoryView, hudView, HISTORY_WIDTH, BOARD_WIDTH, whiteBird.view, blackBird.view);
 
         whiteBird.render();
         blackBird.render();
@@ -94,7 +98,7 @@ public class GameController {
     }
 
     public int getSceneWidth() {
-        return HUD_WIDTH + BOARD_WIDTH;
+        return HISTORY_WIDTH + BOARD_WIDTH + HUD_WIDTH;
     }
 
     public int getSceneHeight() {
@@ -126,6 +130,10 @@ public class GameController {
         String carriedPieceSymbol = chessController.toggleCarryAt(getBirdSquare(playerBird.bird));
         playerBird.view.setCarriedPieceSymbol(carriedPieceSymbol);
         carrier = carriedPieceSymbol == null ? null : playerBird;
+        ChessController.CompletedMove completedMove = chessController.consumeCompletedMove();
+        if (completedMove != null) {
+            moveHistoryView.addMove(completedMove.side(), completedMove.notation());
+        }
         updateHud();
     }
 

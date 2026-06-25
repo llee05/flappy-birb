@@ -91,13 +91,29 @@ class ChessControllerTest {
 
         controller.toggleCarryAt(Square.E2);
         String carriedSymbolAfterDrop = controller.toggleCarryAt(Square.E4);
+        ChessController.CompletedMove completedMove = controller.consumeCompletedMove();
 
         assertNull(carriedSymbolAfterDrop);
+        assertEquals(Side.WHITE, completedMove.side());
+        assertEquals("e4", completedMove.notation());
         assertEquals(Square.NONE, view.hiddenPieceSquare);
         assertEquals(Side.BLACK, view.lastBoard.getSideToMove());
         assertEquals(Piece.WHITE_PAWN, view.lastBoard.getPiece(Square.E4));
         assertEquals(Square.NONE, view.selectedSquare);
         assertEquals(Collections.emptyList(), view.legalTargets);
+    }
+
+    @Test
+    void completedMoveUsesStandardNotationForPieces() {
+        RecordingChessBoardView view = new RecordingChessBoardView();
+        ChessController controller = new ChessController(view);
+
+        controller.toggleCarryAt(Square.G1);
+        controller.toggleCarryAt(Square.F3);
+        ChessController.CompletedMove completedMove = controller.consumeCompletedMove();
+
+        assertEquals(Side.WHITE, completedMove.side());
+        assertEquals("Nf3", completedMove.notation());
     }
 
     @Test
@@ -109,6 +125,7 @@ class ChessControllerTest {
         String carriedSymbolAfterDrop = controller.toggleCarryAt(Square.E2);
 
         assertNull(carriedSymbolAfterDrop);
+        assertNull(controller.consumeCompletedMove());
         assertEquals(Square.NONE, view.hiddenPieceSquare);
         assertEquals(Side.WHITE, view.lastBoard.getSideToMove());
         assertEquals(Piece.WHITE_PAWN, view.lastBoard.getPiece(Square.E2));
@@ -126,6 +143,7 @@ class ChessControllerTest {
         String carriedSymbolAfterDrop = controller.toggleCarryAt(Square.E5);
 
         assertEquals(Piece.WHITE_PAWN.getFanSymbol(), carriedSymbolAfterDrop);
+        assertNull(controller.consumeCompletedMove());
         assertEquals(updateCountAfterPickUp, view.updateCount);
         assertEquals(Square.E2, view.hiddenPieceSquare);
         assertEquals(Side.WHITE, view.lastBoard.getSideToMove());
