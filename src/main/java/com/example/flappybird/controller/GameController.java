@@ -4,6 +4,7 @@ import com.example.flappybird.model.Birb;
 import com.example.flappybird.view.BirbView;
 import com.example.flappybird.view.ChessBoardView;
 import com.example.flappybird.view.GameView;
+import com.example.flappybird.view.HudView;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 import javafx.animation.AnimationTimer;
@@ -11,14 +12,16 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 
 public class GameController {
-    private static final int WINDOW_WIDTH = 800;
-    private static final int WINDOW_HEIGHT = 800;
+    private static final int BOARD_WIDTH = 800;
+    private static final int BOARD_HEIGHT = 800;
+    private static final int HUD_WIDTH = 200;
     private static final double BIRD_SIZE = 50;
 
     private final PlayerBird whiteBird;
     private final PlayerBird blackBird;
     private final GameView gameView;
     private final ChessBoardView chessView;
+    private final HudView hudView;
 
     private final ChessController chessController;
     private PlayerBird carrier;
@@ -43,11 +46,13 @@ public class GameController {
                 KeyCode.ENTER
         );
         chessView = new ChessBoardView();
+        hudView = new HudView(HUD_WIDTH, BOARD_HEIGHT);
         chessController = new ChessController(chessView);
-        gameView = new GameView(chessView, whiteBird.view, blackBird.view);
+        gameView = new GameView(chessView, hudView, HUD_WIDTH, whiteBird.view, blackBird.view);
 
         whiteBird.render();
         blackBird.render();
+        updateHud();
     }
 
     public void setupInput(Scene scene) {
@@ -80,6 +85,14 @@ public class GameController {
         return gameView;
     }
 
+    public int getSceneWidth() {
+        return HUD_WIDTH + BOARD_WIDTH;
+    }
+
+    public int getSceneHeight() {
+        return BOARD_HEIGHT;
+    }
+
     private void handleCarryKeyPressed(PlayerBird playerBird, KeyCode keyCode) {
         if (keyCode != playerBird.carryKey) {
             return;
@@ -105,12 +118,17 @@ public class GameController {
         String carriedPieceSymbol = chessController.toggleCarryAt(getBirdSquare(playerBird.bird));
         playerBird.view.setCarriedPieceSymbol(carriedPieceSymbol);
         carrier = carriedPieceSymbol == null ? null : playerBird;
+        updateHud();
     }
 
     private Square getBirdSquare(Birb bird) {
         double centerX = bird.getX() + bird.getWidth() / 2;
         double centerY = bird.getY() + bird.getHeight() / 2;
         return ChessBoardView.squareForPoint(centerX, centerY);
+    }
+
+    private void updateHud() {
+        hudView.updateSideToMove(chessController.getSideToMove());
     }
 
     private class PlayerBird {
@@ -133,7 +151,7 @@ public class GameController {
             this.side = side;
             this.bird = bird;
             this.view = view;
-            this.controller = new BirbController(bird, WINDOW_WIDTH, WINDOW_HEIGHT, leftKey, rightKey, jumpKey);
+            this.controller = new BirbController(bird, BOARD_WIDTH, BOARD_HEIGHT, leftKey, rightKey, jumpKey);
             this.carryKey = carryKey;
         }
 
