@@ -7,7 +7,7 @@ public class GameView {
     private final Pane boardLayer;
     private final HudView hudView;
 
-    public GameView(ChessBoardView chessBoardView, HudView hudView, double hudWidth, BirbView... birdViews) {
+    public GameView(ChessBoardView chessBoardView, HudView hudView, double boardWidth, BirbView... birdViews) {
         this.hudView = hudView;
         root = new Pane();
         boardLayer = new Pane();
@@ -17,8 +17,8 @@ public class GameView {
             boardLayer.getChildren().add(birdView.getNode());
         }
 
-        boardLayer.setLayoutX(hudWidth);
-        root.getChildren().addAll(hudView.getNode(), boardLayer);
+        hudView.getNode().setLayoutX(boardWidth);
+        root.getChildren().addAll(boardLayer, hudView.getNode());
     }
 
     public Pane getRoot() {

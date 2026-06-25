@@ -48,7 +48,7 @@ public class GameController {
         chessView = new ChessBoardView();
         hudView = new HudView(HUD_WIDTH, BOARD_HEIGHT);
         chessController = new ChessController(chessView);
-        gameView = new GameView(chessView, hudView, HUD_WIDTH, whiteBird.view, blackBird.view);
+        gameView = new GameView(chessView, hudView, BOARD_WIDTH, whiteBird.view, blackBird.view);
 
         whiteBird.render();
         blackBird.render();
