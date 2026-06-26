@@ -50,7 +50,7 @@ public class HudView {
 
         blackTimerCard = createTimerCard(12, 36, width - 24, 56);
         blackTimerCard.setId("blackTimerCard");
-        blackTimerText = createTimerText("04:45", 24);
+        blackTimerText = createTimerText("05:00", 24);
         blackTimerText.setId("blackTimerText");
         blackTimerText.setX(28);
         blackTimerText.setY(72);
@@ -68,7 +68,7 @@ public class HudView {
 
         whiteTimerCard = createTimerCard(12, height - 58, width - 24, 46);
         whiteTimerCard.setId("whiteTimerCard");
-        whiteTimerText = createTimerText("04:45", 22);
+        whiteTimerText = createTimerText("05:00", 22);
         whiteTimerText.setId("whiteTimerText");
         whiteTimerText.setX(28);
         whiteTimerText.setY(height - 28);

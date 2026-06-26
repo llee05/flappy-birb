@@ -21,7 +21,7 @@ public class GameController {
     private static final int HISTORY_WIDTH = 200;
     private static final int HUD_WIDTH = 200;
     private static final double BIRD_SIZE = 50;
-    private static final Duration STARTING_CLOCK_TIME = Duration.ofMinutes(4).plusSeconds(45);
+    private static final Duration STARTING_CLOCK_TIME = Duration.ofMinutes(5).plusSeconds(0);
 
     private final PlayerBird whiteBird;
     private final PlayerBird blackBird;
