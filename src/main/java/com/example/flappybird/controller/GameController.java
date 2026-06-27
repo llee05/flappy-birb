@@ -2,8 +2,10 @@ package com.example.flappybird.controller;
 
 import com.example.flappybird.model.Birb;
 import com.example.flappybird.model.ChessClock;
+import com.example.flappybird.model.ChessGameModel.GameStatus;
 import com.example.flappybird.view.BirbView;
 import com.example.flappybird.view.ChessBoardView;
+import com.example.flappybird.view.EndScreenView;
 import com.example.flappybird.view.GameView;
 import com.example.flappybird.view.HudView;
 import com.example.flappybird.view.MoveHistoryView;
@@ -29,12 +31,15 @@ public class GameController {
     private final ChessBoardView chessView;
     private final MoveHistoryView moveHistoryView;
     private final HudView hudView;
+    private final EndScreenView endScreenView;
 
     private final ChessController chessController;
     private final ChessClock chessClock;
+    private AnimationTimer gameLoop;
     private PlayerBird carrier;
+    private boolean gameOver;
 
-    public GameController() {
+    public GameController(Runnable restartAction) {
         whiteBird = new PlayerBird(
                 Side.WHITE,
                 new Birb(425, 625, BIRD_SIZE, BIRD_SIZE),
@@ -56,9 +61,10 @@ public class GameController {
         chessView = new ChessBoardView();
         moveHistoryView = new MoveHistoryView(HISTORY_WIDTH, BOARD_HEIGHT);
         hudView = new HudView(HUD_WIDTH, BOARD_HEIGHT);
+        endScreenView = new EndScreenView(getSceneWidth(), getSceneHeight(), restartAction);
         chessController = new ChessController(chessView);
         chessClock = new ChessClock(STARTING_CLOCK_TIME);
-        gameView = new GameView(chessView, moveHistoryView, hudView, HISTORY_WIDTH, BOARD_WIDTH, whiteBird.view, blackBird.view);
+        gameView = new GameView(chessView, moveHistoryView, hudView, endScreenView, HISTORY_WIDTH, BOARD_WIDTH, whiteBird.view, blackBird.view);
 
         whiteBird.render();
         blackBird.render();
@@ -67,6 +73,9 @@ public class GameController {
 
     public void setupInput(Scene scene) {
         scene.setOnKeyPressed(event -> {
+            if (gameOver) {
+                return;
+            }
             whiteBird.handleKeyPressed(event.getCode());
             blackBird.handleKeyPressed(event.getCode());
             handleCarryKeyPressed(whiteBird, event.getCode());
@@ -74,23 +83,29 @@ public class GameController {
         });
 
         scene.setOnKeyReleased(event -> {
+            if (gameOver) {
+                return;
+            }
             whiteBird.handleKeyReleased(event.getCode());
             blackBird.handleKeyReleased(event.getCode());
         });
     }
 
     public void startGameLoop() {
-        AnimationTimer timer = new AnimationTimer() {
+        gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 chessClock.tick(now, chessController.getSideToMove());
+                if (endGameIfClockExpired()) {
+                    return;
+                }
                 whiteBird.update();
                 blackBird.update();
                 updateHud();
             }
         };
 
-        timer.start();
+        gameLoop.start();
     }
 
     public GameView getGameView() {
@@ -119,6 +134,10 @@ public class GameController {
     }
 
     private void toggleCarry(PlayerBird playerBird) {
+        if (gameOver) {
+            return;
+        }
+
         if (carrier != null && carrier != playerBird) {
             return;
         }
@@ -133,6 +152,7 @@ public class GameController {
         ChessController.CompletedMove completedMove = chessController.consumeCompletedMove();
         if (completedMove != null) {
             moveHistoryView.addMove(completedMove.side(), completedMove.notation());
+            endGameIfChessFinished();
         }
         updateHud();
     }
@@ -149,6 +169,53 @@ public class GameController {
                 chessClock.getRemainingSeconds(Side.WHITE),
                 chessClock.getRemainingSeconds(Side.BLACK)
         );
+    }
+
+    private boolean endGameIfClockExpired() {
+        Side sideToMove = chessController.getSideToMove();
+        if (!chessClock.isExpired(sideToMove)) {
+            return false;
+        }
+
+        Side winner = sideToMove.flip();
+        showEndScreen(formatWinner(winner), formatSide(sideToMove) + " ran out of time");
+        return true;
+    }
+
+    private void endGameIfChessFinished() {
+        GameStatus status = chessController.getGameStatus();
+        if (status == GameStatus.ACTIVE) {
+            return;
+        }
+
+        if (status == GameStatus.CHECKMATE) {
+            showEndScreen(formatWinner(chessController.getWinner()), "Checkmate");
+        } else if (status == GameStatus.STALEMATE) {
+            showEndScreen("Draw", "Stalemate");
+        } else {
+            showEndScreen("Draw", "Draw by chess rules");
+        }
+    }
+
+    private void showEndScreen(String title, String reason) {
+        if (gameOver) {
+            return;
+        }
+
+        gameOver = true;
+        if (gameLoop != null) {
+            gameLoop.stop();
+        }
+        endScreenView.show(title, reason);
+        updateHud();
+    }
+
+    private String formatWinner(Side winner) {
+        return formatSide(winner) + " wins";
+    }
+
+    private String formatSide(Side side) {
+        return side == Side.WHITE ? "White" : "Black";
     }
 
     private class PlayerBird {

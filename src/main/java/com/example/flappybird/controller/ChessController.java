@@ -1,6 +1,7 @@
 package com.example.flappybird.controller;
 
 import com.example.flappybird.model.ChessGameModel;
+import com.example.flappybird.model.ChessGameModel.GameStatus;
 import com.example.flappybird.view.ChessBoardView;
 import com.github.bhlangonijr.chesslib.Piece;
 import com.github.bhlangonijr.chesslib.Side;
@@ -34,6 +35,14 @@ public class ChessController {
 
     public Side getSideToMove() {
         return model.getSideToMove();
+    }
+
+    public GameStatus getGameStatus() {
+        return model.getGameStatus();
+    }
+
+    public Side getWinner() {
+        return model.getWinner();
     }
 
     public String toggleCarryAt(Square square) {

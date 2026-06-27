@@ -15,6 +15,13 @@ public class ChessGameModel {
     private final Board board;
     private final Piece[][] boardState;
 
+    public enum GameStatus {
+        ACTIVE,
+        CHECKMATE,
+        STALEMATE,
+        DRAW
+    }
+
     public ChessGameModel() {
         board = new Board();
         boardState = new Piece[8][8];
@@ -71,6 +78,26 @@ public class ChessGameModel {
 
     public Side getSideToMove() {
         return board.getSideToMove();
+    }
+
+    public GameStatus getGameStatus() {
+        if (board.isMated()) {
+            return GameStatus.CHECKMATE;
+        }
+
+        if (board.isStaleMate()) {
+            return GameStatus.STALEMATE;
+        }
+
+        if (board.isDraw()) {
+            return GameStatus.DRAW;
+        }
+
+        return GameStatus.ACTIVE;
+    }
+
+    public Side getWinner() {
+        return getGameStatus() == GameStatus.CHECKMATE ? getSideToMove().flip() : null;
     }
 
     public boolean hasCurrentSidePiece(Square square) {

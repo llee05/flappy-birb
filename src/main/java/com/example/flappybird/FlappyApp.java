@@ -8,7 +8,11 @@ import javafx.stage.Stage;
 public class FlappyApp extends Application {
     @Override
     public void start(Stage stage) {
-        GameController controller = new GameController();
+        showGame(stage);
+    }
+
+    private void showGame(Stage stage) {
+        GameController controller = new GameController(() -> showGame(stage));
 
         Scene scene = new Scene(
                 controller.getGameView().getRoot(),

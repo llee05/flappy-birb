@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ChessGameModelTest {
@@ -17,6 +18,8 @@ class ChessGameModelTest {
     void startsWithStandardChessPosition() {
         ChessGameModel model = new ChessGameModel();
 
+        assertEquals(ChessGameModel.GameStatus.ACTIVE, model.getGameStatus());
+        assertNull(model.getWinner());
         assertEquals(Side.WHITE, model.getSideToMove());
         assertEquals(20, model.getLegalMoves().size());
         assertEquals(Piece.WHITE_KING, model.getPiece(Square.E1));
@@ -121,5 +124,27 @@ class ChessGameModelTest {
 
         assertEquals(Piece.WHITE_KNIGHT, model.getPiece(Square.A8));
         assertEquals(Piece.WHITE_KNIGHT, model.getBoardState()[Square.A8.getRank().ordinal()][Square.A8.getFile().ordinal()]);
+    }
+
+    @Test
+    void detectsCheckmateAndWinner() {
+        ChessGameModel model = new ChessGameModel();
+
+        assertTrue(model.tryMove(Square.F2, Square.F3));
+        assertTrue(model.tryMove(Square.E7, Square.E5));
+        assertTrue(model.tryMove(Square.G2, Square.G4));
+        assertTrue(model.tryMove(Square.D8, Square.H4));
+
+        assertEquals(ChessGameModel.GameStatus.CHECKMATE, model.getGameStatus());
+        assertEquals(Side.BLACK, model.getWinner());
+    }
+
+    @Test
+    void detectsStalemateAsDrawWithoutWinner() {
+        ChessGameModel model = new ChessGameModel();
+        model.getBoard().loadFromFen("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1");
+
+        assertEquals(ChessGameModel.GameStatus.STALEMATE, model.getGameStatus());
+        assertNull(model.getWinner());
     }
 }

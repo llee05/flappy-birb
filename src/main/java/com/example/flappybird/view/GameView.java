@@ -7,17 +7,20 @@ public class GameView {
     private final Pane boardLayer;
     private final MoveHistoryView moveHistoryView;
     private final HudView hudView;
+    private final EndScreenView endScreenView;
 
     public GameView(
             ChessBoardView chessBoardView,
             MoveHistoryView moveHistoryView,
             HudView hudView,
+            EndScreenView endScreenView,
             double historyWidth,
             double boardWidth,
             BirbView... birdViews
     ) {
         this.moveHistoryView = moveHistoryView;
         this.hudView = hudView;
+        this.endScreenView = endScreenView;
         root = new Pane();
         boardLayer = new Pane();
 
@@ -28,7 +31,7 @@ public class GameView {
 
         boardLayer.setLayoutX(historyWidth);
         hudView.getNode().setLayoutX(historyWidth + boardWidth);
-        root.getChildren().addAll(moveHistoryView.getNode(), boardLayer, hudView.getNode());
+        root.getChildren().addAll(moveHistoryView.getNode(), boardLayer, hudView.getNode(), endScreenView.getNode());
     }
 
     public Pane getRoot() {
@@ -41,5 +44,9 @@ public class GameView {
 
     public MoveHistoryView getMoveHistoryView() {
         return moveHistoryView;
+    }
+
+    public EndScreenView getEndScreenView() {
+        return endScreenView;
     }
 }
