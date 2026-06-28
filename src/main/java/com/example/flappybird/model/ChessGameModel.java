@@ -65,6 +65,18 @@ public class ChessGameModel {
                 .collect(Collectors.toList());
     }
 
+    public List<Move> getLegalMovesBetween(Square from, Square to) {
+        return getLegalMovesFrom(from).stream()
+                .filter(move -> move.getTo() == to)
+                .collect(Collectors.toList());
+    }
+
+    public List<Move> getPromotionMoves(Square from, Square to) {
+        return getLegalMovesBetween(from, to).stream()
+                .filter(move -> move.getPromotion() != Piece.NONE)
+                .collect(Collectors.toList());
+    }
+
     public List<Square> getLegalTargetSquares(Square from) {
         return getLegalMovesFrom(from).stream()
                 .map(Move::getTo)
@@ -131,6 +143,13 @@ public class ChessGameModel {
 
     public Move getLegalMove(Square from, Square to) {
         return findLegalMove(from, to);
+    }
+
+    public Move getPromotionMove(Square from, Square to, PieceType promotionType) {
+        return getPromotionMoves(from, to).stream()
+                .filter(move -> move.getPromotion().getPieceType() == promotionType)
+                .findFirst()
+                .orElse(null);
     }
 
     private Move findLegalMove(Square from, Square to) {

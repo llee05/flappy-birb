@@ -9,6 +9,8 @@ import com.example.flappybird.view.EndScreenView;
 import com.example.flappybird.view.GameView;
 import com.example.flappybird.view.HudView;
 import com.example.flappybird.view.MoveHistoryView;
+import com.example.flappybird.view.PromotionChoiceView;
+import com.github.bhlangonijr.chesslib.PieceType;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 import javafx.animation.AnimationTimer;
@@ -31,6 +33,7 @@ public class GameController {
     private final ChessBoardView chessView;
     private final MoveHistoryView moveHistoryView;
     private final HudView hudView;
+    private final PromotionChoiceView promotionChoiceView;
     private final EndScreenView endScreenView;
 
     private final ChessController chessController;
@@ -61,10 +64,21 @@ public class GameController {
         chessView = new ChessBoardView();
         moveHistoryView = new MoveHistoryView(HISTORY_WIDTH, BOARD_HEIGHT);
         hudView = new HudView(HUD_WIDTH, BOARD_HEIGHT);
+        promotionChoiceView = new PromotionChoiceView(getSceneWidth(), getSceneHeight());
         endScreenView = new EndScreenView(getSceneWidth(), getSceneHeight(), restartAction);
         chessController = new ChessController(chessView);
         chessClock = new ChessClock(STARTING_CLOCK_TIME);
-        gameView = new GameView(chessView, moveHistoryView, hudView, endScreenView, HISTORY_WIDTH, BOARD_WIDTH, whiteBird.view, blackBird.view);
+        gameView = new GameView(
+                chessView,
+                moveHistoryView,
+                hudView,
+                promotionChoiceView,
+                endScreenView,
+                HISTORY_WIDTH,
+                BOARD_WIDTH,
+                whiteBird.view,
+                blackBird.view
+        );
 
         whiteBird.render();
         blackBird.render();
@@ -74,6 +88,10 @@ public class GameController {
     public void setupInput(Scene scene) {
         scene.setOnKeyPressed(event -> {
             if (gameOver) {
+                return;
+            }
+            if (chessController.hasPendingPromotion()) {
+                handlePromotionKeyPressed(event.getCode());
                 return;
             }
             whiteBird.handleKeyPressed(event.getCode());
@@ -149,12 +167,49 @@ public class GameController {
         String carriedPieceSymbol = chessController.toggleCarryAt(getBirdSquare(playerBird.bird));
         playerBird.view.setCarriedPieceSymbol(carriedPieceSymbol);
         carrier = carriedPieceSymbol == null ? null : playerBird;
+        if (chessController.hasPendingPromotion()) {
+            promotionChoiceView.show(chessController.getPromotionRequest().side());
+            updateHud();
+            return;
+        }
+
         ChessController.CompletedMove completedMove = chessController.consumeCompletedMove();
         if (completedMove != null) {
             moveHistoryView.addMove(completedMove.side(), completedMove.notation());
             endGameIfChessFinished();
         }
         updateHud();
+    }
+
+    private void handlePromotionKeyPressed(KeyCode keyCode) {
+        PieceType promotionType = promotionTypeForKey(keyCode);
+        if (promotionType == null) {
+            return;
+        }
+
+        ChessController.CompletedMove completedMove = chessController.choosePromotion(promotionType);
+        if (completedMove == null) {
+            return;
+        }
+
+        promotionChoiceView.hide();
+        if (carrier != null) {
+            carrier.view.setCarriedPieceSymbol(null);
+        }
+        carrier = null;
+        moveHistoryView.addMove(completedMove.side(), completedMove.notation());
+        endGameIfChessFinished();
+        updateHud();
+    }
+
+    private PieceType promotionTypeForKey(KeyCode keyCode) {
+        return switch (keyCode) {
+            case Q -> PieceType.QUEEN;
+            case R -> PieceType.ROOK;
+            case B -> PieceType.BISHOP;
+            case N -> PieceType.KNIGHT;
+            default -> null;
+        };
     }
 
     private Square getBirdSquare(Birb bird) {

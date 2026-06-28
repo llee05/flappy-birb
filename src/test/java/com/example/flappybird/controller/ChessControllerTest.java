@@ -1,8 +1,10 @@
 package com.example.flappybird.controller;
 
 import com.example.flappybird.view.ChessBoardView;
+import com.example.flappybird.model.ChessGameModel;
 import com.github.bhlangonijr.chesslib.Board;
 import com.github.bhlangonijr.chesslib.Piece;
+import com.github.bhlangonijr.chesslib.PieceType;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 import org.junit.jupiter.api.Test;
@@ -114,6 +116,41 @@ class ChessControllerTest {
 
         assertEquals(Side.WHITE, completedMove.side());
         assertEquals("Nf3", completedMove.notation());
+    }
+
+    @Test
+    void promotionDropWaitsForPieceChoice() {
+        ChessGameModel model = new ChessGameModel();
+        model.getBoard().loadFromFen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1");
+        RecordingChessBoardView view = new RecordingChessBoardView();
+        ChessController controller = new ChessController(view, model);
+
+        controller.toggleCarryAt(Square.A7);
+        String carriedSymbol = controller.toggleCarryAt(Square.A8);
+
+        assertEquals(Piece.WHITE_PAWN.getFanSymbol(), carriedSymbol);
+        assertNull(controller.consumeCompletedMove());
+        assertEquals(new ChessController.PromotionRequest(Side.WHITE, Square.A7, Square.A8), controller.getPromotionRequest());
+        assertEquals(Side.WHITE, controller.getSideToMove());
+        assertEquals(Square.A7, view.hiddenPieceSquare);
+    }
+
+    @Test
+    void choosingPromotionPieceCompletesMove() {
+        ChessGameModel model = new ChessGameModel();
+        model.getBoard().loadFromFen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1");
+        RecordingChessBoardView view = new RecordingChessBoardView();
+        ChessController controller = new ChessController(view, model);
+
+        controller.toggleCarryAt(Square.A7);
+        controller.toggleCarryAt(Square.A8);
+        ChessController.CompletedMove completedMove = controller.choosePromotion(PieceType.KNIGHT);
+
+        assertEquals(Side.WHITE, completedMove.side());
+        assertEquals("a8=N", completedMove.notation());
+        assertNull(controller.getPromotionRequest());
+        assertEquals(Piece.WHITE_KNIGHT, view.lastBoard.getPiece(Square.A8));
+        assertEquals(Square.NONE, view.hiddenPieceSquare);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.example.flappybird.model;
 
 import com.github.bhlangonijr.chesslib.Piece;
+import com.github.bhlangonijr.chesslib.PieceType;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
@@ -113,6 +114,17 @@ class ChessGameModelTest {
 
         assertEquals(Piece.WHITE_QUEEN, model.getPiece(Square.A8));
         assertEquals(Piece.WHITE_QUEEN, model.getBoardState()[Square.A8.getRank().ordinal()][Square.A8.getFile().ordinal()]);
+    }
+
+    @Test
+    void exposesSpecificPromotionMoves() {
+        ChessGameModel model = new ChessGameModel();
+        model.getBoard().loadFromFen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1");
+
+        Move knightPromotion = model.getPromotionMove(Square.A7, Square.A8, PieceType.KNIGHT);
+
+        assertEquals(Piece.WHITE_KNIGHT, knightPromotion.getPromotion());
+        assertEquals(4, model.getPromotionMoves(Square.A7, Square.A8).size());
     }
 
     @Test

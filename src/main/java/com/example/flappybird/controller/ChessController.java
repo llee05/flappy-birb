@@ -4,6 +4,7 @@ import com.example.flappybird.model.ChessGameModel;
 import com.example.flappybird.model.ChessGameModel.GameStatus;
 import com.example.flappybird.view.ChessBoardView;
 import com.github.bhlangonijr.chesslib.Piece;
+import com.github.bhlangonijr.chesslib.PieceType;
 import com.github.bhlangonijr.chesslib.Side;
 import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
@@ -15,16 +16,25 @@ import java.util.Collections;
 public class ChessController {
     private final ChessGameModel model;
     private final ChessBoardView view;
-    private final MoveList moveHistory = new MoveList();
+    private final MoveList moveHistory;
     private Square carriedSquare = Square.NONE;
     private CompletedMove completedMove;
+    private PromotionRequest promotionRequest;
 
     public record CompletedMove(Side side, String notation) {
     }
 
+    public record PromotionRequest(Side side, Square from, Square to) {
+    }
+
     public ChessController(ChessBoardView view) {
-        this.model = new ChessGameModel();
+        this(view, new ChessGameModel());
+    }
+
+    ChessController(ChessBoardView view, ChessGameModel model) {
+        this.model = model;
         this.view = view;
+        this.moveHistory = new MoveList(model.getBoard().getFen());
         this.view.update(model.getBoard());
     }
 
@@ -46,6 +56,10 @@ public class ChessController {
     }
 
     public String toggleCarryAt(Square square) {
+        if (promotionRequest != null) {
+            return getCarriedPieceSymbol();
+        }
+
         completedMove = null;
         if (carriedSquare == Square.NONE) {
             pickUpAt(square);
@@ -60,6 +74,37 @@ public class ChessController {
         CompletedMove move = completedMove;
         completedMove = null;
         return move;
+    }
+
+    public PromotionRequest getPromotionRequest() {
+        return promotionRequest;
+    }
+
+    public boolean hasPendingPromotion() {
+        return promotionRequest != null;
+    }
+
+    public CompletedMove choosePromotion(PieceType promotionType) {
+        if (promotionRequest == null) {
+            return null;
+        }
+
+        Move move = model.getPromotionMove(promotionRequest.from(), promotionRequest.to(), promotionType);
+        if (move == null) {
+            return null;
+        }
+
+        Side movingSide = model.getSideToMove();
+        if (!model.tryMove(move)) {
+            return null;
+        }
+
+        completedMove = new CompletedMove(movingSide, recordMove(move));
+        promotionRequest = null;
+        carriedSquare = Square.NONE;
+        view.setHiddenPieceSquare(Square.NONE);
+        refresh();
+        return consumeCompletedMove();
     }
 
     private void pickUpAt(Square square) {
@@ -82,6 +127,12 @@ public class ChessController {
 
         Square from = carriedSquare;
         Side movingSide = model.getSideToMove();
+        if (!model.getPromotionMoves(from, square).isEmpty()) {
+            promotionRequest = new PromotionRequest(movingSide, from, square);
+            updateSelectionHighlights();
+            return;
+        }
+
         Move move = model.getLegalMove(from, square);
         if (move != null && model.tryMove(move)) {
             completedMove = new CompletedMove(movingSide, recordMove(move));
